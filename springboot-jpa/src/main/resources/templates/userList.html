@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<title>Insert title here</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../jslib/jquery-easyui-1.4.4/themes/default/easyui.css"></link>
+<link rel="stylesheet" type="text/css" href="../jslib/jquery-easyui-1.4.4/themes/icon.css"></link>
+<script type="text/javascript" src="../jslib/jquery-2.1.1.min.js"></script>
+<script type="text/javascript" src="../jslib/jquery-easyui-1.4.4/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../jslib/jquery-easyui-1.4.4/locale/easyui-lang-zh_CN.js"></script>
+<script src="../jslib/jquery-easyui-1.4.4/util-js.js"></script>
+<link rel="stylesheet" href="../jslib/kindeditor-4.1.10/themes/default/default.css" ></link>
+<script src="../jslib/kindeditor-4.1.10/kindeditor-all.js"></script>
+
+
+<body>
+		<div id="userToolbar">
+		<a class="easyui-linkbutton" onclick="openUserAddDialog()">新增用户</a>
+		<a class="easyui-linkbutton" onclick="deleteUsers()">删除用户</a>
+		&nbsp;
+		用户姓名：<input class="easyui-textbox" id="searchUserName" />
+		<a href="javascript:search()" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true">搜索</a>
+		</div>
+		<table id="userTable"></table>
+	
+		<!-- 新增用户表格 -->
+		<div id="addUserDialog" class="easyui-dialog"    data-options="title:'新增',iconCls:'icon-add',modal:true,closed:true,
+					buttons:[{
+						text:'保存',
+						iconCls:'icon-save',
+						plain:true,
+						handler:function(){
+							addUserTable();
+						}
+					},{
+						text:'关闭',
+						iconCls:'icon-cancel',
+						plain:true,
+						handler:function(){
+							
+						}
+					}]" 
+				style="width: 400px; height:300px">
+			<form id="addUserForm">
+				<table id="addUserTable">
+					<tr>
+						<td>用户名<input type="hidden" name="userId" id="userId"/></td>
+						<td><input type="text" class="easyui-textbox" name="userName" id="userName"/></td>
+					</tr>
+					<tr>
+						<td>账号</td>
+						<td><input type="text" class="easyui-textbox" name="userNumber" id="userNumber"/></td>
+					</tr>
+					<tr>
+						<td>密码</td>
+						<td><input  type="password"    class="easyui-textbox" name="userPassword" id="userPassword" /></td>
+					</tr>
+					<tr>
+						<td>日期</td>
+						<td><input type="text" class="easyui-datebox" name="userDate" id="userDate" /></td>
+					</tr>
+					<tr>
+						<td>图片</td>
+						<td>
+							<div id="fileQueue"></div>
+							<img id="add_img"  width="100" height="100"/>
+							<input type="file" id="uploadImg" name="image"/>
+							<input type="text" name='userImg'  size="100" id="userImg"/>  
+						</td>
+					</tr>
+				</table>
+			</form>
+		</div>
+
+<script type="text/javascript">
+	//页面加载事件 
+	$(function(){
+		initUserTable();
+	})
+	
+	//条查
+	function search(){
+ 	   $("#userTable").datagrid('load',{
+ 		  userName:$("#searchUserName").val()
+ 		   
+ 		});
+		
+	}
+	
+	
+	//初始化用户表
+	function initUserTable(){
+		$("#userTable").datagrid({
+			url:'../user/queryUser',
+			type:'post',
+			fit:true,
+			loadMsg:"正在加载....",
+			title:"信息展示",
+			fitColumns:true,
+            singleSelect:false,//如果为true，则只允许选择一行。
+          /*  rownumbers:true,//如果为true，则显示一个行号列。
+            pagination:true,//如果为true，则在DataGrid控件底部显示分页工具栏。
+            pagePosition:'bottom',//定义分页工具栏的位置。可用的值有：'top','bottom','both'。
+            pageNumber:0,//设置分页属性的时候初始化页码。
+			pageSize:4,//设置分页属性的时候初始化页面大小。
+			pageList:[2,4,6,10],//设置分页属性的时候 初始化页面大小选择列表。*/
+			toolbar:'#userToolbar',
+			rownumbers:true,//开启行号 默认false,
+			columns:[[
+				{field:'333',checkbox:true},
+				{field:'userId',title:'主键id'},
+				{field:'userNumber',title:'账号'},
+				{field:'userPassword',title:'密码'},
+				{field:'userDate',title:'日期'},
+				{field:'userName',title:'用户名'},
+				{field:'userImg',title:'图片',formatter:function(value,row,index){
+					return '<img width="50px" height="50px" src="'+value+'"/>'
+				}},
+				{field:'33',title:'操作',formatter:function(index,row,value){
+					return '<a href="javascript:deleteUserById('+row.userId+')">删除</a> | <a href="javascript:updateUserById('+row.userId+')">修改</a>'
+				}}
+			]]
+		})
+	}
+	
+	//新增用户弹框打开
+	function openUserAddDialog(){
+        $("#addUserForm").form("clear");
+		$('#addUserForm').form('reset');
+		$("#addUserDialog").dialog('open');
+	}
+	
+	//添加用户 
+	function addUserTable(){
+		var userId=$("#userId").val();
+		var userName=$("#userName").val();
+		var userNumber=$("#userNumber").val();
+		var userPassword=$("#userPassword").val();
+		var userDate=$("#userDate").datebox('getValue');
+		var userImg=$("#userImg").val();
+		$.ajax({
+			url:'../user/addUser',
+			data:{
+                userId:userId,
+				userName:userName,
+                userNumber:userNumber,
+                userPassword:userPassword,
+				userDate:userDate,
+				userImg:userImg
+			},
+			type:'post',
+			success:function(data){
+			    $("#addUserForm").form('reset');
+				$("#addUserDialog").dialog('close');
+				initUserTable();
+			}
+		})
+	}
+
+	//删除用户
+	function deleteUserById(userId){
+		$.ajax({
+			url:'../user/deleteUserById?userId='+userId,
+			type:'post',
+			success:function(){
+				alert("删除成功");
+				location.href=location;
+			}
+		})
+	}
+	//批删
+	function deleteUsers(){
+		var arr = $('#userTable').datagrid('getChecked');
+		if(arr.length == 0){
+			$.messager.alert('提示','请选择需要删除的数据','info');
+			return;
+		}
+		$.messager.confirm('提示', '确定删除这'+arr.length+'条数据吗？', function(r){
+			if (r){
+				var ids = ""
+				for(var i in arr){
+					ids += ids == "" ? arr[i].userId : ","+arr[i].userId;
+				}
+				$.ajax({
+					url:'../user/deleteUsers',
+					type:'post',
+					data:{
+						ids:ids
+					},
+					dataType:'json',
+					success:function(data){
+						if (data) {
+						initUserTable();
+						$.messager.alert('提示','删除成功','info');
+						}else{
+						$.messager.alert('提示','删除失败','error');
+						}
+			    	}
+				})
+			}
+		});
+	}
+
+//点击修改回显
+	function updateUserById(userId){
+		$.ajax({
+			url:'../user/queryUserListById',
+			type:'post',
+			data:{
+                userId:userId
+			},
+			dataType:'json',
+			success:function(data){
+				$("#addUserForm").form('load',data);
+                $("#addUserDialog").dialog('open');
+			}
+		})
+	}
+
+   /* //不走后台回显 修改回显
+    function updateUser(){
+        var rows = $("#userTable").datagrid("getSelected");
+        $('#userForm').form('load',rows);
+        $("#addDialog").dialog("open");
+        $.messager.alert("提示", "修改成功", 'info')
+        $('#myTable').datagrid('reload');
+    }*/
+	
+	
+</script>
+</body>
+</html>

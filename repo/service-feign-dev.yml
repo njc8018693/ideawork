@@ -6,7 +6,7 @@ server:
   port: 8084
 spring:
   application:
-    name: service-feign
+    name: service-feignaaa
 
 feign:
   hystrix:
